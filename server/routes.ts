@@ -39,6 +39,17 @@ export async function registerRoutes(
     if (body.roleTitle !== undefined) updates.roleTitle = body.roleTitle;
     if (body.jobUrl !== undefined) updates.jobUrl = body.jobUrl;
     if (body.notes !== undefined) updates.notes = body.notes;
+    if (body.salary !== undefined) {
+      if (body.salary === null || body.salary === "") {
+        updates.salary = null;
+      } else {
+        const salaryNum = Number(body.salary);
+        if (isNaN(salaryNum) || !Number.isInteger(salaryNum) || salaryNum < 0 || salaryNum > 99_999_999) {
+          return res.status(400).json({ message: "Salary must be a whole number between 0 and 99,999,999" });
+        }
+        updates.salary = salaryNum;
+      }
+    }
 
     if (body.status !== undefined) {
       if (!STATUSES.includes(body.status)) {
