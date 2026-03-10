@@ -13,6 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
@@ -26,30 +33,60 @@ const columnColors: Record<string, string> = {
   Withdrawn: "bg-gray-500",
 };
 
+const interestFilterOptions = [
+  { value: "all", label: "All" },
+  { value: "High", label: "🟢 High" },
+  { value: "Medium", label: "🟡 Medium" },
+  { value: "Low", label: "🔴 Low" },
+];
+
 function KanbanColumn({
   status,
   prospects,
   isLoading,
+  interestFilter,
+  onInterestFilterChange,
 }: {
   status: string;
   prospects: Prospect[];
   isLoading: boolean;
+  interestFilter: string;
+  onInterestFilterChange: (value: string) => void;
 }) {
+  const filteredProspects =
+    interestFilter === "all"
+      ? prospects
+      : prospects.filter((p) => p.interestLevel === interestFilter);
+
   return (
     <div
       className="flex flex-col min-w-[260px] max-w-[320px] w-full bg-muted/40 rounded-md"
       data-testid={`column-${status.replace(/\s+/g, "-").toLowerCase()}`}
     >
-      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/50">
-        <div className={`w-2 h-2 rounded-full ${columnColors[status] || "bg-gray-400"}`} />
-        <h3 className="text-sm font-semibold truncate">{status}</h3>
-        <Badge
-          variant="secondary"
-          className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center no-default-active-elevate"
-          data-testid={`badge-count-${status.replace(/\s+/g, "-").toLowerCase()}`}
-        >
-          {prospects.length}
-        </Badge>
+      <div className="flex flex-col gap-1.5 px-3 py-2.5 border-b border-border/50">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${columnColors[status] || "bg-gray-400"}`} />
+          <h3 className="text-sm font-semibold truncate">{status}</h3>
+          <Badge
+            variant="secondary"
+            className="ml-auto text-[10px] px-1.5 py-0 h-5 min-w-[20px] flex items-center justify-center no-default-active-elevate"
+            data-testid={`badge-count-${status.replace(/\s+/g, "-").toLowerCase()}`}
+          >
+            {filteredProspects.length}
+          </Badge>
+        </div>
+        <Select value={interestFilter} onValueChange={onInterestFilterChange}>
+          <SelectTrigger className="h-7 text-xs w-full">
+            <SelectValue placeholder="Filter by interest" />
+          </SelectTrigger>
+          <SelectContent>
+            {interestFilterOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex-1 overflow-y-auto px-2 py-2">
         <div className="space-y-2">
@@ -58,12 +95,12 @@ function KanbanColumn({
               <Skeleton className="h-28 rounded-md" />
               <Skeleton className="h-20 rounded-md" />
             </>
-          ) : prospects.length === 0 ? (
+          ) : filteredProspects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center" data-testid={`empty-${status.replace(/\s+/g, "-").toLowerCase()}`}>
               <p className="text-xs text-muted-foreground">No prospects</p>
             </div>
           ) : (
-            prospects.map((prospect) => (
+            filteredProspects.map((prospect) => (
               <ProspectCard key={prospect.id} prospect={prospect} />
             ))
           )}
@@ -75,6 +112,9 @@ function KanbanColumn({
 
 export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [interestFilters, setInterestFilters] = useState<Record<string, string>>(
+    () => Object.fromEntries(STATUSES.map((s) => [s, "all"]))
+  );
 
   const { data: prospects, isLoading } = useQuery<Prospect[]>({
     queryKey: ["/api/prospects"],
@@ -134,6 +174,10 @@ export default function Home() {
               status={status}
               prospects={groupedByStatus[status] || []}
               isLoading={isLoading}
+              interestFilter={interestFilters[status]}
+              onInterestFilterChange={(value) =>
+                setInterestFilters((prev) => ({ ...prev, [status]: value }))
+              }
             />
           ))}
         </div>
