@@ -62,7 +62,6 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
   });
 
   return (
-    <>
     <Form {...form}>
       <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
         <FormField
@@ -187,6 +186,10 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
           />
         </div>
 
+        <div className="border-t pt-4">
+          <ContactsSection prospectId={prospect.id} />
+        </div>
+
         <FormField
           control={form.control}
           name="notes"
@@ -220,10 +223,5 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
         </Button>
       </form>
     </Form>
-
-    <div className="border-t pt-4 mt-4">
-      <ContactsSection prospectId={prospect.id} />
-    </div>
-  </>
   );
 }
