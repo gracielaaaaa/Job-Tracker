@@ -30,10 +30,11 @@ client/src/
 
 ## Database
 
-Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, notes, created_at.
+Single `prospects` table: id, company_name, role_title, job_url, status, interest_level, notes, salary, created_at.
 
 - **Statuses**: Bookmarked, Applied, Phone Screen, Interviewing, Offer, Rejected, Withdrawn
 - **Interest levels**: High, Medium, Low
+- **Salary**: Optional integer field, displayed as formatted USD currency on cards
 
 ## API
 
