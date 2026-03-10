@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
+import { ContactsSection } from "./contacts-section";
 
 interface EditProspectFormProps {
   prospect: Prospect;
@@ -183,6 +184,10 @@ export function EditProspectForm({ prospect, onSuccess }: EditProspectFormProps)
               </FormItem>
             )}
           />
+        </div>
+
+        <div className="border-t pt-4">
+          <ContactsSection prospectId={prospect.id} />
         </div>
 
         <FormField
