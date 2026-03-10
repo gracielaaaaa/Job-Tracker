@@ -1,4 +1,4 @@
-import { STATUSES, INTEREST_LEVELS } from "@shared/schema";
+import { STATUSES, INTEREST_LEVELS, CONTACT_TYPES } from "@shared/schema";
 
 export function getNextStatus(currentStatus: string): string {
   const terminalStatuses = ["Offer", "Rejected", "Withdrawn"];
@@ -55,4 +55,28 @@ export function validateProspect(data: Record<string, unknown>): { valid: boolea
 
 export function isTerminalStatus(status: string): boolean {
   return status === "Rejected" || status === "Withdrawn" || status === "Offer";
+}
+
+export function validateContact(data: Record<string, unknown>): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (!data.name || typeof data.name !== "string" || data.name.trim() === "") {
+    errors.push("Contact name is required");
+  }
+
+  if (data.contactType !== undefined) {
+    if (!CONTACT_TYPES.includes(data.contactType as (typeof CONTACT_TYPES)[number])) {
+      errors.push(`Contact type must be one of: ${CONTACT_TYPES.join(", ")}`);
+    }
+  }
+
+  if (data.email !== undefined && data.email !== null && data.email !== "") {
+    const emailStr = String(data.email);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailStr)) {
+      errors.push("Invalid email address");
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
 }

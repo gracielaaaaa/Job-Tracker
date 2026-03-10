@@ -14,6 +14,8 @@ export const STATUSES = [
 
 export const INTEREST_LEVELS = ["High", "Medium", "Low"] as const;
 
+export const CONTACT_TYPES = ["Recruiter", "Current Employee", "Other"] as const;
+
 export const prospects = pgTable("prospects", {
   id: serial("id").primaryKey(),
   companyName: text("company_name").notNull(),
@@ -23,6 +25,17 @@ export const prospects = pgTable("prospects", {
   interestLevel: text("interest_level").notNull().default("Medium"),
   notes: text("notes"),
   salary: integer("salary"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const contacts = pgTable("contacts", {
+  id: serial("id").primaryKey(),
+  prospectId: integer("prospect_id").notNull(),
+  name: text("name").notNull(),
+  contactType: text("contact_type").notNull().default("Other"),
+  email: text("email"),
+  title: text("title"),
+  notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -42,5 +55,19 @@ export const insertProspectSchema = createInsertSchema(prospects).omit({
   ]).optional().nullable(),
 });
 
+export const insertContactSchema = createInsertSchema(contacts).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  name: z.string().min(1, "Contact name is required"),
+  contactType: z.enum(CONTACT_TYPES).default("Other"),
+  email: z.string().email("Invalid email address").optional().nullable().or(z.literal("")),
+  title: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  prospectId: z.number().int(),
+});
+
 export type InsertProspect = z.infer<typeof insertProspectSchema>;
 export type Prospect = typeof prospects.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;
+export type Contact = typeof contacts.$inferSelect;

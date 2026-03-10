@@ -1,4 +1,4 @@
-import { type Prospect, type InsertProspect, prospects } from "@shared/schema";
+import { type Prospect, type InsertProspect, prospects, type Contact, type InsertContact, contacts } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
@@ -8,6 +8,11 @@ export interface IStorage {
   createProspect(data: InsertProspect): Promise<Prospect>;
   updateProspect(id: number, data: Partial<InsertProspect>): Promise<Prospect | undefined>;
   deleteProspect(id: number): Promise<boolean>;
+  getContactsByProspect(prospectId: number): Promise<Contact[]>;
+  getContact(id: number): Promise<Contact | undefined>;
+  createContact(data: InsertContact): Promise<Contact>;
+  updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined>;
+  deleteContact(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -35,7 +40,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteProspect(id: number): Promise<boolean> {
+    await db.delete(contacts).where(eq(contacts.prospectId, id));
     const result = await db.delete(prospects).where(eq(prospects.id, id)).returning();
+    return result.length > 0;
+  }
+
+  async getContactsByProspect(prospectId: number): Promise<Contact[]> {
+    return await db.select().from(contacts).where(eq(contacts.prospectId, prospectId)).orderBy(desc(contacts.createdAt));
+  }
+
+  async getContact(id: number): Promise<Contact | undefined> {
+    const [result] = await db.select().from(contacts).where(eq(contacts.id, id));
+    return result;
+  }
+
+  async createContact(data: InsertContact): Promise<Contact> {
+    const [result] = await db.insert(contacts).values(data).returning();
+    return result;
+  }
+
+  async updateContact(id: number, data: Partial<InsertContact>): Promise<Contact | undefined> {
+    const [result] = await db
+      .update(contacts)
+      .set(data)
+      .where(eq(contacts.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteContact(id: number): Promise<boolean> {
+    const result = await db.delete(contacts).where(eq(contacts.id, id)).returning();
     return result.length > 0;
   }
 }

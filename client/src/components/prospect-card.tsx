@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { Prospect } from "@shared/schema";
+import type { Prospect, Contact } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { ExternalLink, Trash2, Pencil, Flame, ThumbsUp, Minus, Users } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -44,6 +44,10 @@ function InterestIndicator({ level }: { level: string }) {
 export function ProspectCard({ prospect }: { prospect: Prospect }) {
   const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
+
+  const { data: contacts = [] } = useQuery<Contact[]>({
+    queryKey: [`/api/prospects/${prospect.id}/contacts`],
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -112,6 +116,13 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
           )}
         </div>
 
+        {contacts.length > 0 && (
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Users className="w-3 h-3" />
+            {contacts.length} contact{contacts.length !== 1 ? "s" : ""}
+          </span>
+        )}
+
         {prospect.jobUrl && (
           <a
             href={prospect.jobUrl}
@@ -134,7 +145,7 @@ export function ProspectCard({ prospect }: { prospect: Prospect }) {
       </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Prospect</DialogTitle>
           </DialogHeader>
